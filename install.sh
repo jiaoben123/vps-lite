@@ -1,9 +1,12 @@
 #!/bin/bash
 
 # VPS 极简自动维护总控脚本 (不安装XrayR，仅做瘦身 + 自动定时维护)
-# by ChatGPT专属定制版
+# by ChatGPT专属定制版 v1.2
 
 set -e
+
+# ✅ 自动补齐必要依赖
+apt update -y && apt install wget curl bc -y
 
 # 1. 先执行一次完整瘦身
 echo "🚀 正在执行第一次系统瘦身..."
