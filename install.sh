@@ -1,53 +1,44 @@
 #!/bin/bash
 
-# XrayR 极简纯净版安装脚本
+# VPS每日自动瘦身脚本（含前后空间对比）
+# 适配LXC极简 XrayR小盘 VPS
 
 set -e
 
-# 1. 更新系统 & 安装必要组件
-apt update -y && apt install wget curl tar unzip -y
+echo "🚀 开始每日自动极简清理..."
 
-# 2. 创建安装目录
-mkdir -p /usr/local/XrayR
-cd /usr/local/XrayR
+# 记录清理前磁盘使用
+before=$(df / | awk 'NR==2 {print $3}')
 
-# 3. 检测架构
-arch=$(uname -m)
-if [[ $arch == "x86_64" ]]; then
-    arch="64"
-elif [[ $arch == "aarch64" ]]; then
-    arch="arm64-v8a"
-else
-    arch="64"
-fi
-
-# 4. 下载最新版 XrayR
-latest=$(curl -s https://api.github.com/repos/XrayR-project/XrayR/releases/latest | grep tag_name | cut -d '"' -f 4)
-wget -O XrayR-linux.zip https://github.com/XrayR-project/XrayR/releases/download/${latest}/XrayR-linux-${arch}.zip
-
-unzip XrayR-linux.zip && rm XrayR-linux.zip
-chmod +x XrayR
-
-# 5. 配置 systemd
-mkdir -p /etc/XrayR
-wget -O /etc/systemd/system/XrayR.service https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/XrayR.service
-systemctl daemon-reload
-systemctl enable XrayR
-
-# 6. 下载管理脚本
-curl -o /usr/bin/XrayR -Ls https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/XrayR.sh
-chmod +x /usr/bin/XrayR
-ln -s /usr/bin/XrayR /usr/bin/xrayr
-
-# 7. 清理系统文件
+# 清理APT缓存
 apt clean
-rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /usr/share/info/* /usr/share/lintian/* /usr/share/locale/* /var/log/* /lib/modules/*
+rm -rf /var/lib/apt/lists/*
 
-# 8. 设置纯英文环境避免locale错误
-echo "export LANG=C" >> /etc/profile
-source /etc/profile
+# 清理日志文件
+rm -rf /var/log/*
+journalctl --vacuum-time=1d || true
+
+# 清理无用文档与语言包
+rm -rf /usr/share/doc/*
+rm -rf /usr/share/man/*
+rm -rf /usr/share/info/*
+rm -rf /usr/share/lintian/*
+rm -rf /usr/share/locale/*
+
+# 再次清理可能残留的内核模块（LXC安全）
+rm -rf /lib/modules/*
+
+# 记录清理后磁盘使用
+after=$(df / | awk 'NR==2 {print $3}')
+
+# 计算节省空间（单位：KB）
+saved=$(($before - $after))
+saved_mb=$(echo "scale=2; $saved/1024" | bc)
 
 echo ""
-echo "✅ XrayR极简版安装完成"
-echo "👉 请前往 /etc/XrayR/config.yml 配置你的节点参数"
-echo "👉 启动命令：systemctl start XrayR"
+echo "✅ 瘦身完成，今日共释放空间: ${saved_mb} MB"
+echo "📊 当前磁盘使用情况："
+df -h /
+
+# 记录日志供后续追溯
+echo "$(date '+%Y-%m-%d %H:%M:%S') 清理完成, 释放 ${saved_mb} MB" >> /var/log/vps-lite-daily-clean.log
