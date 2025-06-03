@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# VPS 极简自动维护 v1.4 - 精确释放统计版
+# VPS 极简自动维护 v1.4.1 - 精确释放统计版 - 完全极简安装依赖
 
 set -e
 
@@ -10,11 +10,11 @@ yellow='\033[1;33m'
 cyan='\033[1;36m'
 plain='\033[0m'
 
-echo -e "${cyan}================ VPS-Lite v1.4 极简自动维护 =================${plain}"
+echo -e "${cyan}================ VPS-Lite v1.4.1 极简自动维护 =================${plain}"
 
-# 依赖检测
+# 依赖检测（不做系统源更新，纯极简）
 echo -e "${yellow}[依赖检测] 安装必要组件...${plain}"
-apt update -y && apt install bc -y
+apt install bc -y || true
 
 # 定义要清理的目标目录
 targets="/usr/share/doc /usr/share/man /usr/share/info /usr/share/lintian /usr/share/locale /lib/modules"
@@ -61,7 +61,6 @@ EOF
 
 chmod +x /usr/local/bin/vps-lite-daily-clean.sh
 
-# 写入定时任务 (去重)
 (crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/vps-lite-daily-clean.sh >/dev/null 2>&1") | sort -u | crontab -
 
 echo ""
