@@ -14,7 +14,7 @@ echo -e "${cyan}================ VPS-Lite v1.4 极简自动维护 ==============
 
 # 依赖检测
 echo -e "${yellow}[依赖检测] 安装必要组件...${plain}"
-apt update -y && apt install wget curl bc -y
+apt update -y && apt install bc -y
 
 # 定义要清理的目标目录
 targets="/usr/share/doc /usr/share/man /usr/share/info /usr/share/lintian /usr/share/locale /lib/modules"
