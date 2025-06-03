@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# VPS 极简自动维护 v1.4.1 - 精确释放统计版 - 完全极简安装依赖
+# VPS 极简自动维护 v1.4.2-unzip - 精确释放统计版 - 自动清理 unzip
 
 set -e
 
@@ -10,7 +10,13 @@ yellow='\033[1;33m'
 cyan='\033[1;36m'
 plain='\033[0m'
 
-echo -e "${cyan}================ VPS-Lite v1.4.1 极简自动维护 =================${plain}"
+echo -e "${cyan}================ VPS-Lite v1.4.2-unzip 极简自动维护 =================${plain}"
+
+# 先自动卸载 XrayR 安装完后的 unzip 临时依赖
+echo -e "${yellow}[临时依赖清理] 正在卸载 unzip ...${plain}"
+apt purge -y unzip || true
+apt autoremove -y || true
+apt clean || true
 
 # 依赖检测（不做系统源更新，纯极简）
 echo -e "${yellow}[依赖检测] 安装必要组件...${plain}"
